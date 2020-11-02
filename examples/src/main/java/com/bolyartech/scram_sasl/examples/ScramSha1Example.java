@@ -86,8 +86,9 @@ public class ScramSha1Example {
 
         @Override
         public void sendMessage(long connectionId, String msg) {
+            System.out.println("Client: [" + msg + "]");
             try {
-                client.onMessage(msg);
+                client.onMessage(connectionId, msg);
             } catch (ScramException e) {
                 e.printStackTrace();
             }
@@ -99,9 +100,10 @@ public class ScramSha1Example {
         private ScramSaslServerProcessor mServer;
 
         @Override
-        public void sendMessage(String msg) {
+        public void sendMessage(long connectionId, String msg) {
+            System.out.println("Server: [" + msg + "]");
             try {
-                mServer.onMessage(msg);
+                mServer.onMessage(connectionId, msg);
             } catch (ScramException e) {
                 e.printStackTrace();
             }

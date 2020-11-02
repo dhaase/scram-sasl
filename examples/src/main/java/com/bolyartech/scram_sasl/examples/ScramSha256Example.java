@@ -11,9 +11,12 @@ import com.bolyartech.scram_sasl.server.UserData;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Random;
 
 
 public class ScramSha256Example {
+
+    private static final Random random = new Random();
 
     /**
      * Shows how to use both client and server with SCRAM SHA-256
@@ -50,6 +53,7 @@ public class ScramSha256Example {
 
         @SuppressWarnings("Convert2Lambda")
         ScramSaslServerProcessor.UserDataLoader loader = new ScramSaslServerProcessor.UserDataLoader() {
+
             @Override
             public void loadUserData(String username, long connectionId, ScramSaslServerProcessor processor) {
                 // we fake the loading by simply generating new user data
@@ -80,7 +84,9 @@ public class ScramSha256Example {
         ScramSha256SaslClientProcessor client = new ScramSha256SaslClientProcessor(clientListener, toServerSender);
 
         MyToClientSender toClientSender = new MyToClientSender(client);
-        ScramSha256SaslServerProcessor server = new ScramSha256SaslServerProcessor(1, serverListener, loader,
+        ScramSha256SaslServerProcessor server = new ScramSha256SaslServerProcessor(random.nextInt(Integer.MAX_VALUE),
+                serverListener,
+                loader,
                 toClientSender);
 
         toServerSender.setServer(server);
@@ -105,8 +111,9 @@ public class ScramSha256Example {
 
         @Override
         public void sendMessage(long connectionId, String msg) {
+            System.out.println(connectionId + ": Client: [" + msg + "]");
             try {
-                client.onMessage(msg);
+                client.onMessage(connectionId, msg);
             } catch (ScramException e) {
                 e.printStackTrace();
             }
@@ -119,9 +126,10 @@ public class ScramSha256Example {
 
 
         @Override
-        public void sendMessage(String msg) {
+        public void sendMessage(long connectionId, String msg) {
+            System.out.println(connectionId + ": Server: [" + msg + "]");
             try {
-                mServer.onMessage(msg);
+                mServer.onMessage(connectionId, msg);
             } catch (ScramException e) {
                 e.printStackTrace();
             }
